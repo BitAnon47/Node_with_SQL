@@ -1,7 +1,7 @@
 const express = require('express');
 const customerController = require('../controllers/customerController');
 
-function setRoutes(app) {
+function setRoutes(app) {``
   const router = express.Router();
 
   // Welcome route
@@ -10,9 +10,9 @@ function setRoutes(app) {
   });
 
   // Customer routes
-  router.post('/customers', customerController.createCustomer);
-  router.get('/getcustomers', customerController.getAllCustomers);
-  router.get('/customers/:id', customerController.getCustomerById); 
+  router.post('/customers', customerController.createCustomer); // Create customer
+  router.get('/getcustomers', customerController.getAllCustomers);// Get all customers
+  router.get('/customers/:id', customerController.getCustomerById); // Get customer by ID
   router.put('/customers/:id', customerController.updateCustomer); // Update customer
   router.delete('/customers/:id', customerController.deleteCustomer); // Delete customer
   
