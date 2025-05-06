@@ -1,27 +1,14 @@
-const Customer = require('../models/User');
+const { sql } = require('../config/db');
 
 // Create a new customer
-
-const { sequelize } = require('../config/db');
-
-// Create a new customer using raw SQL
 exports.createCustomer = async (req, res) => {
   try {
     const { name, age, gender, phoneNumber } = req.body;
 
-    // Log the incoming request data
-    console.log('Request Data:', { name, age, gender, phoneNumber });
-
-    // Raw SQL query to insert a new customer
-    const [result] = await sequelize.query(
+    const [result] = await sql.execute(
       'INSERT INTO customers (name, age, gender, phoneNumber) VALUES (?, ?, ?, ?)',
-      {
-        replacements: [name, age, gender, phoneNumber], // Replace placeholders with actual values
-      }
+      [name, age, gender, phoneNumber]
     );
-
-    // Log the result of the query
-    console.log('Customer Created:', result);
 
     res.status(201).json({ message: 'Customer created successfully', result });
   } catch (error) {
@@ -30,24 +17,49 @@ exports.createCustomer = async (req, res) => {
   }
 };
 
-// Update a customer using raw SQL
+// Get all customers
+exports.getAllCustomers = async (req, res) => {
+  try {
+    const [customers] = await sql.execute('SELECT * FROM customers');
+    res.json(customers);
+  } catch (error) {
+    console.error('Error retrieving customers:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// Get a customer by ID
+exports.getCustomerById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [customer] = await sql.execute('SELECT * FROM customers WHERE id = ?', [id]);
+
+    if (customer.length === 0) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    res.json(customer[0]);
+  } catch (error) {
+    console.error('Error retrieving customer:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// Update a customer
 exports.updateCustomer = async (req, res) => {
   try {
-    const { id } = req.params; // Get customer ID from URL
-    const { name, age, gender, phoneNumber } = req.body; // Get updated data from request body
+    const { id } = req.params;
+    const { name, age, gender, phoneNumber } = req.body;
 
-    const [result] = await sequelize.query(
+    const [result] = await sql.execute(
       'UPDATE customers SET name = ?, age = ?, gender = ?, phoneNumber = ? WHERE id = ?',
-      {
-        replacements: [name, age, gender, phoneNumber, id],
-      }
+      [name, age, gender, phoneNumber, id]
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Customer not found' });
     }
-
-    console.log('Customer Updated:', result);
 
     res.json({ message: 'Customer updated successfully' });
   } catch (error) {
@@ -56,20 +68,16 @@ exports.updateCustomer = async (req, res) => {
   }
 };
 
-// Delete a customer using raw SQL
+// Delete a customer
 exports.deleteCustomer = async (req, res) => {
   try {
-    const { id } = req.params; // Get customer ID from URL
+    const { id } = req.params;
 
-    const [result] = await sequelize.query('DELETE FROM customers WHERE id = ?', {
-      replacements: [id],
-    });
+    const [result] = await sql.execute('DELETE FROM customers WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Customer not found' });
     }
-
-    console.log('Customer Deleted:', result);
 
     res.json({ message: 'Customer deleted successfully' });
   } catch (error) {
@@ -77,40 +85,3 @@ exports.deleteCustomer = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-// Get all customers using raw SQL
-exports.getAllCustomers = async (req, res) => {
-  try {
-    // Raw SQL query to fetch all customers
-    const [customers] = await sequelize.query('SELECT * FROM customers');
-
-    // Log the retrieved customers
-    console.log('Retrieved Customers:', customers);
-
-    res.json(customers);
-  } catch (error) {
-    console.error('Error retrieving customers:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
-// Get a customer by ID using raw SQL
-exports.getCustomerById = async (req, res) => {
-  try {
-    const { id } = req.params; // Get customer ID from URL
-
-    // Raw SQL query to fetch a customer by ID
-    const [customer] = await sequelize.query('SELECT * FROM customers WHERE id = ?', {
-      replacements: [id],
-    });
-
-    if (customer.length === 0) {
-      return res.status(404).json({ message: 'Customer not found' });
-    }
-
-    res.json(customer[0]); // Return the first (and only) customer
-  } catch (error) {
-    console.error('Error retrieving customer:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
